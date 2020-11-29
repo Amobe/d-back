@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/amobe/d-back/pkg/infra/inmem"
+
 	"github.com/amobe/d-back/pkg/handler"
 	"github.com/amobe/d-back/pkg/infra/webserver"
+	"github.com/amobe/d-back/pkg/service/iplimiter"
 )
 
 func main() {
@@ -13,9 +16,12 @@ func main() {
 
 	server := webserver.NewGinServer(listenAddr)
 
-	hello := handler.NewHelloHandler()
+	ipLimiterRepository := inmem.NewIPLimiterRepository()
+	ipLimiterService := iplimiter.NewIPLimiterService(ipLimiterRepository)
 
-	err := server.AddRouter(http.MethodPost, "/request", hello.Handle)
+	hello := handler.NewHelloHandler(ipLimiterService)
+
+	err := server.AddRouter(http.MethodPost, "/hello", hello.Handle)
 	if err != nil {
 		fmt.Printf("fail to add hello route: %s\n", err)
 		return
