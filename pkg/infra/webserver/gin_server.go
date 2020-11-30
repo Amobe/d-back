@@ -28,14 +28,22 @@ func (s *GinServer) Start() {
 }
 
 // AddRouter registers a request handler with given path and method.
-func (s *GinServer) AddRouter(method string, path string, handler func(*gin.Context)) error {
+func (s *GinServer) AddRouter(method string, path string, handler func(*http.Request) Response) error {
 	switch method {
 	case http.MethodGet:
-		s.router.GET(path, handler)
+		s.router.GET(path, ginHandlerWrapper(handler))
 		return nil
 	case http.MethodPost:
-		s.router.POST(path, handler)
+		s.router.POST(path, ginHandlerWrapper(handler))
 		return nil
 	}
 	return fmt.Errorf("invalid method")
+}
+
+// ginHandlerWrapper wraps the handler becomes a gin handler.
+func ginHandlerWrapper(handler func(*http.Request) Response) func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		resp := handler(ctx.Request)
+		ctx.JSON(resp.code, resp.body)
+	}
 }

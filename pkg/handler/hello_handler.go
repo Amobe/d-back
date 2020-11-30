@@ -5,9 +5,8 @@ import (
 	"net/http"
 
 	"github.com/amobe/d-back/pkg/entity"
+	"github.com/amobe/d-back/pkg/infra/webserver"
 	"github.com/amobe/d-back/pkg/service/iplimiter"
-
-	"github.com/gin-gonic/gin"
 )
 
 // Hello represents a handler
@@ -24,19 +23,21 @@ func NewHelloHandler(ils iplimiter.Service) Hello {
 
 // Handle handles the hello request.
 // The remote address of the client is recorded.
-func (h *Hello) Handle(ctx *gin.Context) {
-	ipAddress, err := entity.NewIPAddress(ctx.Request.RemoteAddr)
+func (h *Hello) Handle(req *http.Request) webserver.Response {
+	ipAddress, err := entity.NewIPAddress(req.RemoteAddr)
 	if err != nil {
 		fmt.Printf("[Err] HelloHandle | new ip address: %s\n", err)
-		ctx.JSON(http.StatusBadRequest, err)
-		return
+		return webserver.NewErrResponse(http.StatusBadRequest, err)
 	}
 
 	token, err := h.ils.AcceptRequest(ipAddress)
 	if err != nil {
 		fmt.Printf("[Err] HelloHandle | accept request: %s\n", err)
-		ctx.JSON(http.StatusServiceUnavailable, err)
-		return
+		return webserver.NewErrResponse(http.StatusServiceUnavailable, err)
 	}
-	fmt.Println(token)
+
+	resp := HelloResponse{
+		Index: token.Index(),
+	}
+	return webserver.NewResponse(http.StatusOK, resp)
 }
