@@ -7,8 +7,8 @@ import (
 	"github.com/amobe/d-back/pkg/exception"
 
 	"github.com/amobe/d-back/pkg/entity"
-	"github.com/amobe/d-back/pkg/limiter"
 	"github.com/amobe/d-back/pkg/repository"
+	"github.com/amobe/d-back/pkg/util/limiter"
 )
 
 type ipLimiterInMem struct {

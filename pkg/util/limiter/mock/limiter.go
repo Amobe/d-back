@@ -5,7 +5,7 @@
 package mock_limiter
 
 import (
-	limiter "github.com/amobe/d-back/pkg/limiter"
+	entity "github.com/amobe/d-back/pkg/entity"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -33,19 +33,19 @@ func (m *MockLimiter) EXPECT() *MockLimiterMockRecorder {
 	return m.recorder
 }
 
-// RequestToken mocks base method
-func (m *MockLimiter) RequestToken() (limiter.Token, error) {
+// Accept mocks base method
+func (m *MockLimiter) Accept() (entity.RequestToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RequestToken")
-	ret0, _ := ret[0].(limiter.Token)
+	ret := m.ctrl.Call(m, "Accept")
+	ret0, _ := ret[0].(entity.RequestToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RequestToken indicates an expected call of RequestToken
-func (mr *MockLimiterMockRecorder) RequestToken() *gomock.Call {
+// Accept indicates an expected call of Accept
+func (mr *MockLimiterMockRecorder) Accept() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestToken", reflect.TypeOf((*MockLimiter)(nil).RequestToken))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Accept", reflect.TypeOf((*MockLimiter)(nil).Accept))
 }
 
 // Cancel mocks base method

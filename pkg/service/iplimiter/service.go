@@ -8,13 +8,18 @@ import (
 	"github.com/amobe/d-back/pkg/exception"
 
 	"github.com/amobe/d-back/pkg/entity"
-	"github.com/amobe/d-back/pkg/limiter"
 	"github.com/amobe/d-back/pkg/repository"
+	"github.com/amobe/d-back/pkg/util/limiter"
+)
+
+const (
+	ipRequestLimitNumber   = 60
+	ipRequestLimitDuration = time.Second
 )
 
 // Service represents the ip limiter service.
 type Service interface {
-	AcceptRequest(ipAddress entity.IPAddress) (limiter.Token, error)
+	AcceptRequest(ipAddress entity.IPAddress) (entity.RequestToken, error)
 }
 
 type service struct {
@@ -31,33 +36,30 @@ func NewIPLimiterService(ipLimiterRepository repository.IPLimiterRepository) Ser
 }
 
 // AcceptRequest accepts the request and returns token for specific ip address.
-func (s *service) AcceptRequest(ipAddress entity.IPAddress) (limiter.Token, error) {
-	throttleLimiter, err := s.getOrCreateThrottleLimiter(ipAddress)
+func (s *service) AcceptRequest(ipAddress entity.IPAddress) (entity.RequestToken, error) {
+	tokenLimiter, err := s.getOrCreateTokenLimiter(ipAddress)
 	if err != nil {
-		return limiter.Token{}, fmt.Errorf("get or create throttle limiter: %w", err)
+		return entity.RequestToken{}, fmt.Errorf("get or create token limiter: %w", err)
 	}
-	token, err := throttleLimiter.RequestToken()
+	token, err := tokenLimiter.Accept()
 	if err != nil {
-		return limiter.Token{}, fmt.Errorf("request token: %w", err)
+		return entity.RequestToken{}, fmt.Errorf("request token: %w", err)
 	}
 	return token, nil
 }
 
-func (s *service) getOrCreateThrottleLimiter(ipAddress entity.IPAddress) (limiter.Limiter, error) {
-	throttleLimiter, err := s.ipLimiterRepository.GetByIP(ipAddress)
+func (s *service) getOrCreateTokenLimiter(ipAddress entity.IPAddress) (limiter.Limiter, error) {
+	tokenLimiter, err := s.ipLimiterRepository.GetByIP(ipAddress)
 	if err == nil {
-		return throttleLimiter, nil
+		return tokenLimiter, nil
 	}
 	if !errors.Is(err, exception.ErrRepositoryNotFound) {
-		return nil, fmt.Errorf("get throttle: %w", err)
+		return nil, fmt.Errorf("get token limiter: %w", err)
 	}
 
-	throttleLimiter = limiter.NewThrottleRateLimiter(limiter.ThrottleConfig{
-		LimitDuration: time.Minute,
-		LimitTimes:    60,
-	})
-	if err := s.ipLimiterRepository.Save(ipAddress, throttleLimiter); err != nil {
-		return nil, fmt.Errorf("save throttle limiter: %w", err)
+	tokenLimiter = limiter.NewAcceptanceRateLimiter(ipRequestLimitNumber, ipRequestLimitDuration)
+	if err := s.ipLimiterRepository.Save(ipAddress, tokenLimiter); err != nil {
+		return nil, fmt.Errorf("save token limiter: %w", err)
 	}
-	return throttleLimiter, nil
+	return tokenLimiter, nil
 }

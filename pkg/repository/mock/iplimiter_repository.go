@@ -6,7 +6,7 @@ package mock_repository
 
 import (
 	entity "github.com/amobe/d-back/pkg/entity"
-	limiter "github.com/amobe/d-back/pkg/limiter"
+	limiter "github.com/amobe/d-back/pkg/util/limiter"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

@@ -5,10 +5,9 @@ import (
 
 	"github.com/amobe/d-back/pkg/entity"
 	"github.com/amobe/d-back/pkg/exception"
-	"github.com/amobe/d-back/pkg/limiter"
-	mock_limiter "github.com/amobe/d-back/pkg/limiter/mock"
 	mock_repository "github.com/amobe/d-back/pkg/repository/mock"
 	"github.com/amobe/d-back/pkg/service/iplimiter"
+	mock_limiter "github.com/amobe/d-back/pkg/util/limiter/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,8 +21,11 @@ func TestServiceAcceptRequest(t *testing.T) {
 	ipAddress, err := entity.NewIPAddress("127.0.0.1:5678")
 	assert.NoError(t, err)
 
+	requestIndex := uint32(1)
+	requestToken := entity.NewRequestToken(requestIndex)
+
 	mockLimiter := mock_limiter.NewMockLimiter(ctrl)
-	mockLimiter.EXPECT().RequestToken().Return(limiter.NewToken(), nil)
+	mockLimiter.EXPECT().Accept().Return(requestToken, nil)
 
 	ipLimiterRepository := mock_repository.NewMockIPLimiterRepository(ctrl)
 	ipLimiterRepository.EXPECT().GetByIP(ipAddress).Return(mockLimiter, nil)
@@ -31,10 +33,12 @@ func TestServiceAcceptRequest(t *testing.T) {
 	ipLimiterService := iplimiter.NewIPLimiterService(ipLimiterRepository)
 
 	// when the ip address requests again
-	_, err = ipLimiterService.AcceptRequest(ipAddress)
+	got, err := ipLimiterService.AcceptRequest(ipAddress)
 
 	// then the request should be accept
+	// and the got token has correct index
 	assert.NoError(t, err)
+	assert.Equal(t, requestIndex, got.Index())
 }
 
 func TestServiceAcceptRequestFirstTime(t *testing.T) {

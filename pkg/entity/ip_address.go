@@ -14,12 +14,10 @@ type IPAddress struct {
 
 // NewIPAddress creates the valdi instance of ip address.
 func NewIPAddress(addr string) (IPAddress, error) {
-	fmt.Println(addr)
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
 		return IPAddress{}, fmt.Errorf("net split host port: %w", err)
 	}
-	fmt.Println(host, port)
 	ip := net.ParseIP(host)
 	if ip == nil {
 		return IPAddress{}, fmt.Errorf("invlid host")
