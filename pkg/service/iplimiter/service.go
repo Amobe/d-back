@@ -12,11 +12,6 @@ import (
 	"github.com/amobe/d-back/pkg/util/limiter"
 )
 
-const (
-	ipRequestLimitNumber   = 60
-	ipRequestLimitDuration = time.Second
-)
-
 // Service represents the ip limiter service.
 type Service interface {
 	AcceptRequest(ipAddress entity.IPAddress) (entity.RequestToken, error)
@@ -24,14 +19,19 @@ type Service interface {
 
 type service struct {
 	ipLimiterRepository repository.IPLimiterRepository
+
+	ipRequestLimitNumber   uint32
+	ipRequestLimitDuration time.Duration
 }
 
 var _ Service = &service{}
 
 // NewIPLimiterService creates the instance of ip limiter service.
-func NewIPLimiterService(ipLimiterRepository repository.IPLimiterRepository) Service {
+func NewIPLimiterService(ipLimiterRepository repository.IPLimiterRepository, limitNumber uint32, limitDuration time.Duration) Service {
 	return &service{
-		ipLimiterRepository: ipLimiterRepository,
+		ipLimiterRepository:    ipLimiterRepository,
+		ipRequestLimitNumber:   limitNumber,
+		ipRequestLimitDuration: limitDuration,
 	}
 }
 
@@ -57,7 +57,7 @@ func (s *service) getOrCreateTokenLimiter(ipAddress entity.IPAddress) (limiter.L
 		return nil, fmt.Errorf("get token limiter: %w", err)
 	}
 
-	tokenLimiter = limiter.NewAcceptanceRateLimiter(ipRequestLimitNumber, ipRequestLimitDuration)
+	tokenLimiter = limiter.NewAcceptanceRateLimiter(s.ipRequestLimitNumber, s.ipRequestLimitDuration)
 	if err := s.ipLimiterRepository.Save(ipAddress, tokenLimiter); err != nil {
 		return nil, fmt.Errorf("save token limiter: %w", err)
 	}

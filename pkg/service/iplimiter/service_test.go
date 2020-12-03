@@ -2,6 +2,7 @@ package iplimiter_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/amobe/d-back/pkg/entity"
 	"github.com/amobe/d-back/pkg/exception"
@@ -30,7 +31,7 @@ func TestServiceAcceptRequest(t *testing.T) {
 	ipLimiterRepository := mock_repository.NewMockIPLimiterRepository(ctrl)
 	ipLimiterRepository.EXPECT().GetByIP(ipAddress).Return(mockLimiter, nil)
 
-	ipLimiterService := iplimiter.NewIPLimiterService(ipLimiterRepository)
+	ipLimiterService := iplimiter.NewIPLimiterService(ipLimiterRepository, 60, time.Second)
 
 	// when the ip address requests again
 	got, err := ipLimiterService.AcceptRequest(ipAddress)
@@ -54,7 +55,7 @@ func TestServiceAcceptRequestFirstTime(t *testing.T) {
 	ipLimiterRepository.EXPECT().GetByIP(ipAddress).Return(nil, exception.ErrRepositoryNotFound)
 	ipLimiterRepository.EXPECT().Save(ipAddress, gomock.Not(gomock.Nil())).Return(nil)
 
-	ipLimiterService := iplimiter.NewIPLimiterService(ipLimiterRepository)
+	ipLimiterService := iplimiter.NewIPLimiterService(ipLimiterRepository, 60, time.Second)
 
 	// when the ip address requests
 	_, err = ipLimiterService.AcceptRequest(ipAddress)
