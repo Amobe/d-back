@@ -1,0 +1,15 @@
+FROM golang:1.15.5-alpine3.12 as build
+ADD . /go/src/github.com/amobe/d-back
+WORKDIR /go/src/github.com/amobe/d-back
+RUN go mod download
+RUN GOOS=linux go build -ldflags="-s -w" -o d-back ./cmd/d-back/main.go
+
+FROM alpine:3.12 as app
+WORKDIR /root/
+ARG PORT=10080
+ENV PORT=${PORT}
+ENV NUMBER=60
+ENV DURATION=1m
+COPY --from=build /go/src/github.com/amobe/d-back/d-back .
+EXPOSE ${PORT}
+ENTRYPOINT ["./d-back"]

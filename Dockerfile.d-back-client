@@ -1,0 +1,10 @@
+FROM golang:1.15.5-alpine3.12 as build
+ADD . /go/src/github.com/amobe/d-back
+WORKDIR /go/src/github.com/amobe/d-back
+RUN go mod download
+RUN GOOS=linux go build -ldflags="-s -w" -o d-back-client ./cmd/d-back-client/main.go
+
+FROM alpine:3.12 as app
+WORKDIR /root/
+COPY --from=build /go/src/github.com/amobe/d-back/d-back-client .
+ENTRYPOINT ["./d-back-client"]
