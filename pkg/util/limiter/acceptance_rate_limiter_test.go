@@ -7,7 +7,7 @@ import (
 
 	"github.com/amobe/d-back/pkg/entity"
 
-	"github.com/amobe/d-back/pkg/limiter"
+	"github.com/amobe/d-back/pkg/util/limiter"
 	"github.com/stretchr/testify/assert"
 )
 

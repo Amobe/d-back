@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/amobe/d-back/pkg/limiter"
+	"github.com/amobe/d-back/pkg/util/limiter"
 )
 
 // BenchmarkAcceptanceRateLimiterRequestToken-6   	12931077	        95.8 ns/op	       0 B/op	       0 allocs/op
