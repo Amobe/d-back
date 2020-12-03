@@ -12,11 +12,11 @@ func main() {
 	var (
 		flagURL      string
 		flagTimes    int
-		flagInterval int
+		flagInterval string
 	)
 	flag.StringVar(&flagURL, "url", "", "request api url")
 	flag.IntVar(&flagTimes, "times", 0, "request times")
-	flag.IntVar(&flagInterval, "interval", 100, "interval between request in millisecond")
+	flag.StringVar(&flagInterval, "interval", "1s", "interval between request")
 	flag.Parse()
 
 	if len(flagURL) == 0 {
@@ -27,20 +27,21 @@ func main() {
 		fmt.Println("invalid times")
 		return
 	}
-	if flagInterval < 0 {
-		fmt.Println("invalid interval")
+	duration, err := time.ParseDuration(flagInterval)
+	if err != nil {
+		fmt.Printf("invalid interval: %s\n", err)
 		return
 	}
 
 	if flagTimes == -1 {
 		for {
 			sendRequest(flagURL)
-			time.Sleep(time.Millisecond * time.Duration(flagInterval))
+			time.Sleep(duration)
 		}
 	} else {
 		for i := 0; i < flagTimes; i++ {
 			sendRequest(flagURL)
-			time.Sleep(time.Millisecond * time.Duration(flagInterval))
+			time.Sleep(duration)
 		}
 	}
 }
